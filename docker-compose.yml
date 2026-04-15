@@ -1,0 +1,51 @@
+version: '3.9'
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: ../docker/Dockerfile.frontend
+    ports:
+      - '5173:5173'
+    environment:
+      - VITE_API_BASE_URL=/api
+    depends_on:
+      - backend
+    env_file:
+      - .env
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: ../docker/Dockerfile.backend
+    ports:
+      - '8000:8000'
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=postgresql+psycopg://echo:echo_password@postgres:5432/echo_db
+    depends_on:
+      - postgres
+      - redis
+
+  postgres:
+    image: ankane/pgvector:latest
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_USER: echo
+      POSTGRES_PASSWORD: echo_password
+      POSTGRES_DB: echo_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+
+volumes:
+  postgres_data:
+  redis_data:
