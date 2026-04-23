@@ -1,7 +1,9 @@
-const apiBase = import.meta.env.VITE_API_URL?.replace(/\/$/, '') || '';
+const apiBase = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, '') || '';
 
 export async function fetcher<T>(path: string): Promise<T> {
-  const response = await fetch(`${apiBase}${path}`);
+  const url = `${apiBase}${path}`;
+  console.log('[API request]', url);
+  const response = await fetch(url);
 
   if (!response.ok) {
     const payload = await response.text();

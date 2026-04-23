@@ -187,15 +187,27 @@ class ParliamentIngestionService:
                 house = self._get_nested(contribution, 'House')
                 house_value = ' / '.join(filter(None, [section, house])) or 'commons'
 
+                # Extract debate_section_ext_id and construct source_url
+                debate_section_ext_id = self._get_nested(contribution, 'DebateSectionExtId')
+                source_url = None
+                if debate_section_ext_id and speech_date and debate_title:
+                    # Map house to slug: take last word and lowercase
+                    house_slug = house_value.split()[-1].lower() if house_value else 'commons'
+                    # Remove spaces from debate title
+                    debate_title_slug = re.sub(r'\s+', '', debate_title)
+                    # Construct Hansard URL
+                    source_url = f"https://hansard.parliament.uk/{house_slug}/{speech_date}/debates/{debate_section_ext_id}/{debate_title_slug}"
+
                 speech = Speech(
                     person_id=person.id,
                     date=speech_date or date.today(),
                     source='hansard',
-                    source_url=None,
+                    source_url=source_url,
                     full_text=self._strip_html(str(full_text)),
                     debate_title=debate_title,
                     house=house_value,
                     hansard_id=str(hansard_id),
+                    debate_section_ext_id=debate_section_ext_id,
                     processed=False,
                 )
                 await run_in_threadpool(self._save_speech, speech)

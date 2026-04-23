@@ -54,7 +54,7 @@ async def list_persons(
     search: Optional[str] = Query(None, description='Search by name contains'),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
-    sort: Optional[str] = Query('name', regex='^(name|speech_count_desc)$'),
+    sort: Optional[str] = Query('name', pattern='^(name|speech_count_desc)$'),
 ):
     offset, page_limit = _paginate(page, page_size)
     speech_stats = (
@@ -64,6 +64,15 @@ async def list_persons(
             func.max(Speech.date).label('latest_speech_date'),
         )
         .group_by(Speech.person_id)
+        .subquery()
+    )
+
+    claim_stats = (
+        select(
+            Claim.person_id.label('person_id'),
+            func.count(Claim.id).label('claim_count'),
+        )
+        .group_by(Claim.person_id)
         .subquery()
     )
 
@@ -80,8 +89,10 @@ async def list_persons(
             Person,
             func.coalesce(speech_stats.c.speech_count, 0).label('speech_count'),
             speech_stats.c.latest_speech_date.label('latest_speech_date'),
+            func.coalesce(claim_stats.c.claim_count, 0).label('claim_count'),
         )
         .outerjoin(speech_stats, Person.id == speech_stats.c.person_id)
+        .outerjoin(claim_stats, Person.id == claim_stats.c.person_id)
     )
 
     if filters:
@@ -104,6 +115,7 @@ async def list_persons(
             role=row.Person.role,
             photo_url=row.Person.photo_url,
             speech_count=int(row.speech_count or 0),
+            claim_count=int(row.claim_count or 0),
             latest_speech_date=row.latest_speech_date,
         )
         for row in results
@@ -342,8 +354,9 @@ async def list_person_contradictions(
     claim_b = aliased(Claim)
     stmt = (
         select(Contradiction, claim_a, claim_b)
-        .join(claim_a, Contradiction.claim_a)
-        .join(claim_b, Contradiction.claim_b)
+        .select_from(Contradiction)
+        .join(claim_a, Contradiction.claim_a_id == claim_a.id)
+        .join(claim_b, Contradiction.claim_b_id == claim_b.id)
         .where(Contradiction.person_id == person_id)
         .order_by(desc(Contradiction.detected_at))
     )
@@ -351,11 +364,11 @@ async def list_person_contradictions(
 
     contradictions = []
     for row in rows:
-        claim_a_row = row.claim_a
-        claim_b_row = row.claim_b
+        claim_a_row = row[1]
+        claim_b_row = row[2]
         contradictions.append(
             ContradictionResponse(
-                id=row.Contradiction.id,
+                id=row[0].id,
                 claim_a=ContradictionClaimData(
                     id=claim_a_row.id,
                     date=claim_a_row.date,
@@ -372,10 +385,10 @@ async def list_person_contradictions(
                     topic=claim_b_row.topic.name if claim_b_row.topic else None,
                     stance=claim_b_row.stance,
                 ),
-                explanation=row.Contradiction.explanation,
-                severity=row.Contradiction.severity,
-                status=row.Contradiction.status,
-                detected_at=row.Contradiction.detected_at,
+                explanation=row[0].explanation,
+                severity=row[0].severity,
+                status=row[0].status,
+                detected_at=row[0].detected_at,
             )
         )
 

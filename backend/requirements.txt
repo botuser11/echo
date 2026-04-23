@@ -9,3 +9,7 @@ pydantic-settings>=2.1.0
 pgvector>=0.4.2,<1.0.0
 httpx>=0.26.0
 celery[redis]>=5.4.0
+spacy==3.7.4
+sentence-transformers==2.6.1
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.2.0+cpu

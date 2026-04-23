@@ -1,9 +1,7 @@
-from __future__ import annotations
-
-from datetime import date, datetime
+from datetime import date as DateType, datetime
 from typing import List, Optional
 
-from pydantic import BaseModel, Field, HttpUrl, UUID4
+from pydantic import BaseModel, Field, UUID4
 
 
 class PaginationMeta(BaseModel):
@@ -21,7 +19,8 @@ class PersonSummary(BaseModel):
     role: Optional[str] = None
     photo_url: Optional[str] = None
     speech_count: int = 0
-    latest_speech_date: Optional[date] = None
+    claim_count: int = 0
+    latest_speech_date: Optional[DateType] = None
 
 
 class PersonTopicPosition(BaseModel):
@@ -33,7 +32,7 @@ class PersonTopicPosition(BaseModel):
 
 class SpeechSummary(BaseModel):
     id: UUID4
-    date: date
+    date: DateType
     debate_title: Optional[str] = None
     full_text: str
     claim_count: int
@@ -47,13 +46,13 @@ class ClaimSummary(BaseModel):
     topic: Optional[str] = None
     stance: Optional[str] = None
     confidence: Optional[float] = None
-    date: Optional[date] = None
+    date: Optional[DateType] = None
     source_url: Optional[str] = None
 
 
 class ShortClaim(BaseModel):
     id: UUID4
-    date: Optional[date] = None
+    date: Optional[DateType] = None
     stance: Optional[str] = None
     claim_text: str
     original_quote: Optional[str] = None
@@ -62,7 +61,7 @@ class ShortClaim(BaseModel):
 
 class ContradictionClaimData(BaseModel):
     id: UUID4
-    date: Optional[date] = None
+    date: Optional[DateType] = None
     claim_text: str
     original_quote: Optional[str] = None
     topic: Optional[str] = None
@@ -91,7 +90,7 @@ class PersonDetail(PersonSummary):
 
 class TimelineItem(BaseModel):
     id: UUID4
-    date: Optional[date] = None
+    date: Optional[DateType] = None
     stance: Optional[str] = None
     claim_text: str
     original_quote: Optional[str] = None
@@ -105,7 +104,7 @@ class SearchResult(BaseModel):
     topic: Optional[str] = None
     stance: Optional[str] = None
     confidence: Optional[float] = None
-    date: Optional[date] = None
+    date: Optional[DateType] = None
     source_url: Optional[str] = None
     person_id: UUID4
     person_name: str
@@ -135,8 +134,8 @@ class TopicNode(BaseModel):
     slug: str
     description: Optional[str] = None
     claim_count: int = 0
-    children: List[TopicNode] = Field(default_factory=list)
-
+    children: List["TopicNode"] = Field(default_factory=list)
+TopicNode.model_rebuild()
 
 class PaginatedPersonResponse(BaseModel):
     data: List[PersonSummary]

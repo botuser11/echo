@@ -1,12 +1,16 @@
+import asyncio
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException, Path
 from sqlalchemy.orm import Session
 
+from app.api.pipeline import router as pipeline_router
 from app.db.session import get_db
 from app.services.ingestion import ParliamentIngestionService
+from app.scripts.bootstrap import bootstrap_data
 
 router = APIRouter()
+router.include_router(pipeline_router)
 logger = logging.getLogger(__name__)
 
 
@@ -43,3 +47,9 @@ async def ingest_votes(db: Session = Depends(get_db)) -> dict:
     except Exception as exc:
         logger.exception('Failed to ingest votes')
         raise HTTPException(status_code=500, detail=str(exc))
+
+
+@router.post('/bootstrap')
+async def bootstrap_admin() -> dict[str, str]:
+    asyncio.create_task(bootstrap_data())
+    return {'message': 'Bootstrap started'}
