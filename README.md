@@ -178,7 +178,7 @@ The project connects academic NLP research to a consumer-facing product, demonst
 MSc Data Science & Engineering — University of Dundee (2025)
 
 - [GitHub](https://github.com/botuser11)
-- [LinkedIn](https://linkedin.com/in/your-linkedin) *(update with your actual LinkedIn URL)*
+- [LinkedIn](https://www.linkedin.com/in/karthik-valluvar-ab596a298) 
 
 ---
 
