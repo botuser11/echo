@@ -23,22 +23,6 @@ Echo analyses every word spoken in the UK Parliament, extracts political claims 
 
 ---
 
-## Screenshots
-
-### Landing Page
-Dark editorial theme with search-first design. Featured politicians sorted by parliamentary activity.
-
-### MP Profile — Claims Tab
-AI-extracted claims with topic badges, dates, and original quotes in context.
-
-### Contradiction Detection
-Side-by-side contradiction view showing Claim A vs Claim B with stance labels, dates, and source links.
-
-### Timeline View
-Chronological claim evolution grouped by month, showing how positions shift over time.
-
----
-
 ## Technical Architecture
 
 ```
